@@ -182,10 +182,28 @@ function [out, idx] = parsearray(len, bytes, idx)
     end
 end
 
+
 function [out, idx] = parsemap(len, bytes, idx)
-    out = containers.Map();
-    for n=1:len
+    tempMap = containers.Map();
+    isStruct = true;
+    keys = cell(1, len);
+    values = cell(1, len);
+    for n = 1:len
         [key, idx] = parse(bytes, idx);
-        [out(key), idx] = parse(bytes, idx);
+        [value, idx] = parse(bytes, idx);
+        keys{n} = key;
+        values{n} = value;
+        if ~ischar(key)
+            isStruct = false;
+        end
+        tempMap(key) = value;
+    end
+    if isStruct
+        % 如果所有键都是字符串，将 Map 转换为结构体
+        out = cell2struct(values, keys, 2);
+    else
+        % 保持 Map 类型
+        out = tempMap;
     end
 end
+
